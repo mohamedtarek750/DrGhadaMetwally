@@ -1,0 +1,509 @@
+@import 'tailwindcss';
+@import 'lenis/dist/lenis.css';
+
+/* Tokens, in three layers (docs/design-system.md):
+   1. Primitives: the palette itself. Only the semantic layer below uses them.
+   2. Semantic: what a colour is for. Components use these (bg-surface,
+      text-fg-muted, border-hairline...). Values that can't be CSS (share
+      image, shader, theme colour) mirror these in src/lib/tokens.ts.
+   3. Component: small per-component variables, like --btn-bg on buttons. */
+@theme {
+  /* 1. Primitives */
+  --color-ink: #2a1420;
+  --color-plum: #5b4452;
+  --color-porcelain: #fbf6f3;
+  --color-blush: #f9e4ed;
+  --color-petal: #fca6d6;
+  --color-berry: #9c2a62;
+  --color-line: rgb(42 20 32 / 0.14);
+  --color-line-light: rgb(251 246 243 / 0.18);
+
+  /* 2. Semantic */
+  --color-surface: var(--color-porcelain);
+  --color-surface-muted: var(--color-blush);
+  --color-surface-brand: var(--color-petal);
+  --color-surface-inverse: var(--color-ink);
+  --color-fg: var(--color-ink);
+  --color-fg-muted: var(--color-plum);
+  --color-fg-inverse: var(--color-porcelain);
+  --color-accent: var(--color-petal);
+  --color-accent-strong: var(--color-berry);
+  --color-hairline: var(--color-line);
+  --color-hairline-inverse: var(--color-line-light);
+  --color-focus: var(--color-accent-strong);
+
+  --shadow-float: 0 12px 40px -12px color-mix(in oklab, var(--color-fg) 55%, transparent);
+
+  --font-display: var(--font-fraunces), 'Iowan Old Style', Georgia, serif;
+  --font-sans: var(--font-instrument), ui-sans-serif, system-ui, sans-serif;
+
+  --ease-out-expo: cubic-bezier(0.16, 1, 0.3, 1);
+  --ease-out-quart: cubic-bezier(0.25, 1, 0.5, 1);
+  --ease-in-out-quart: cubic-bezier(0.76, 0, 0.24, 1);
+
+  --breakpoint-xs: 30rem;
+}
+
+@layer base {
+  html {
+    background: var(--color-surface);
+    color: var(--color-fg);
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+    text-rendering: optimizeLegibility;
+    scrollbar-color: var(--color-fg-muted) var(--color-surface);
+    /* Keep focused elements clear of the fixed header (and, on phones, the
+       booking bar) when the browser scrolls them into view. */
+    scroll-padding-top: 6rem;
+    scroll-padding-bottom: 6rem;
+  }
+  @media (min-width: 768px) {
+    html {
+      scroll-padding-bottom: 1rem;
+    }
+  }
+
+  body {
+    font-size: 1rem;
+    line-height: 1.65;
+    font-feature-settings: 'ss01', 'kern';
+    overflow-x: clip;
+  }
+
+  ::selection {
+    background: var(--color-accent);
+    color: var(--color-fg);
+  }
+
+  :focus-visible {
+    outline: 2px solid var(--color-focus);
+    outline-offset: 4px;
+    border-radius: 2px;
+  }
+
+  /* Dark sections remap the roles that need to change on ink. */
+  [data-theme='dark'] {
+    --color-focus: var(--color-accent);
+  }
+
+  /* Sections that are jump targets get focus after an in-page link. */
+  [tabindex='-1']:focus {
+    outline: none;
+  }
+
+  img {
+    user-select: none;
+  }
+}
+
+@layer components {
+  .container-site {
+    width: 100%;
+    max-width: 100rem;
+    margin-inline: auto;
+    padding-inline: clamp(1.25rem, 4vw, 3.5rem);
+  }
+
+  .section-y {
+    padding-block: clamp(6rem, 12vw, 12rem);
+  }
+
+  .font-display {
+    font-family: var(--font-display);
+    font-weight: 300;
+    font-optical-sizing: auto;
+  }
+
+  /* Fraunces italic ships as its own face (see lib/fonts.ts). */
+  .font-display.italic,
+  .font-display .italic,
+  .font-display em {
+    font-family: var(--font-fraunces-italic), var(--font-display);
+  }
+
+  .eyebrow {
+    font-family: var(--font-sans);
+    font-size: 0.75rem;
+    line-height: 1.2;
+    font-weight: 500;
+    letter-spacing: 0.2em;
+    text-transform: uppercase;
+  }
+
+  /* Display headings wrap evenly instead of leaving one word on the last line. */
+  .t-h1,
+  .t-h2,
+  .t-h3 {
+    text-wrap: balance;
+  }
+
+  .t-h1 {
+    font-size: clamp(2.9rem, 7.2vw, 7.5rem);
+    line-height: 0.94;
+    letter-spacing: -0.03em;
+  }
+
+  .t-h2 {
+    font-size: clamp(2.25rem, 4.6vw, 4.75rem);
+    line-height: 1;
+    letter-spacing: -0.025em;
+  }
+
+  .t-h3 {
+    font-size: clamp(1.6rem, 2.4vw, 2.4rem);
+    line-height: 1.1;
+    letter-spacing: -0.015em;
+  }
+
+  .t-statement {
+    font-size: clamp(1.75rem, 3.5vw, 3.6rem);
+    line-height: 1.14;
+    letter-spacing: -0.02em;
+  }
+
+  .t-lead {
+    font-size: clamp(1.0625rem, 1.25vw, 1.25rem);
+    line-height: 1.6;
+  }
+
+  /* Underline that draws in from the left and leaves to the right. */
+  .link-u {
+    position: relative;
+    display: inline-block;
+    padding-block: 0.15em;
+  }
+  .link-u::after {
+    content: '';
+    position: absolute;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    height: 1px;
+    background: currentColor;
+    transform: scaleX(0);
+    transform-origin: right;
+    transition: transform 0.6s var(--ease-out-expo);
+  }
+  .link-u:hover::after,
+  .link-u:focus-visible::after,
+  .link-u[aria-current='true']::after,
+  :where(a, button):hover > .link-u::after,
+  :where(a, button):focus-visible > .link-u::after {
+    transform: scaleX(1);
+    transform-origin: left;
+  }
+
+  /* Always underlined; the line redraws on hover. */
+  .link-line {
+    position: relative;
+    display: inline-block;
+    padding-block: 0.15em;
+  }
+  .link-line::before,
+  .link-line::after {
+    content: '';
+    position: absolute;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    height: 1px;
+    background: currentColor;
+    transition: transform 0.7s var(--ease-out-expo);
+  }
+  .link-line::before {
+    transform-origin: right;
+  }
+  .link-line::after {
+    transform: scaleX(0);
+    transform-origin: left;
+    transition-delay: 0s;
+  }
+  .link-line:hover::before,
+  :where(a, button):hover > .link-line::before {
+    transform: scaleX(0);
+  }
+  .link-line:hover::after,
+  :where(a, button):hover > .link-line::after {
+    transform: scaleX(1);
+    transition-delay: 0.25s;
+  }
+
+  /* Buttons. The label rolls up to a copy of itself on hover. */
+  .btn {
+    position: relative;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.75rem;
+    min-height: 3.5rem;
+    padding-inline: 1.75rem;
+    border-radius: 999px;
+    font-size: 0.9375rem;
+    font-weight: 500;
+    letter-spacing: 0.01em;
+    line-height: 1;
+    white-space: nowrap;
+    overflow: hidden;
+    isolation: isolate;
+    transition:
+      color 0.5s var(--ease-out-expo),
+      border-color 0.5s var(--ease-out-expo);
+  }
+  .btn::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    z-index: -1;
+    border-radius: inherit;
+    background: var(--btn-fill-hover);
+    transform: translateY(101%);
+    transition: transform 0.6s var(--ease-out-expo);
+  }
+  .btn:hover::before,
+  .btn:focus-visible::before {
+    transform: translateY(0);
+  }
+  .btn-label {
+    position: relative;
+    display: inline-block;
+    overflow: hidden;
+    padding-block: 0.2em;
+  }
+  .btn-label > span {
+    display: block;
+    transition: transform 0.6s var(--ease-out-expo);
+  }
+  .btn-label > span + span {
+    position: absolute;
+    inset: 0.2em 0 auto;
+    transform: translateY(130%);
+  }
+  .btn:hover .btn-label > span:first-child,
+  .btn:focus-visible .btn-label > span:first-child {
+    transform: translateY(-130%);
+  }
+  .btn:hover .btn-label > span + span,
+  .btn:focus-visible .btn-label > span + span {
+    transform: translateY(0);
+  }
+  .btn-icon {
+    transition: transform 0.6s var(--ease-out-expo);
+  }
+  .btn:hover .btn-icon {
+    transform: translateX(3px);
+  }
+
+  /* Compact size, for the header. */
+  .btn-sm {
+    min-height: 2.75rem;
+    padding-inline: 1.25rem;
+    font-size: 0.875rem;
+  }
+
+  /* Component tokens: each variant sets --btn-* from the semantic layer. */
+  .btn-ink,
+  .btn-petal {
+    background: var(--btn-bg);
+    color: var(--btn-fg);
+  }
+  .btn-ink {
+    --btn-bg: var(--color-surface-inverse);
+    --btn-fg: var(--color-fg-inverse);
+    --btn-fill-hover: var(--color-accent-strong);
+  }
+  .btn-petal {
+    --btn-bg: var(--color-accent);
+    --btn-fg: var(--color-fg);
+    --btn-fill-hover: var(--color-surface);
+  }
+  .btn-outline {
+    border: 1px solid currentColor;
+    --btn-fill-hover: var(--color-fg);
+    --btn-fg-hover: var(--color-fg-inverse);
+  }
+  [data-theme='dark'] .btn-outline {
+    --btn-fill-hover: var(--color-fg-inverse);
+    --btn-fg-hover: var(--color-fg);
+  }
+  .btn-outline:hover,
+  .btn-outline:focus-visible {
+    color: var(--btn-fg-hover);
+    border-color: var(--btn-fill-hover);
+  }
+
+  /* Gives a small text link a 44px-tall touch area. Put the underline class on
+     an inner span so it stays tight to the text. */
+  .tap {
+    display: inline-flex;
+    align-items: center;
+    min-width: 2.75rem;
+    min-height: 2.75rem;
+  }
+
+  .hairline {
+    height: 1px;
+    background: var(--color-hairline);
+  }
+}
+
+@layer utilities {
+  .text-balance {
+    text-wrap: balance;
+  }
+  .text-pretty {
+    text-wrap: pretty;
+  }
+}
+
+/* --- Motion states --------------------------------------------------------
+   `motion-ok` is set before first paint by an inline script when JS runs and
+   the visitor hasn't asked for reduced motion. Elements wait hidden until the
+   motion layer is ready; a timed fallback shows them anyway if it never is. */
+@keyframes reveal-fallback {
+  to {
+    opacity: 1;
+  }
+}
+
+/* Opacity, not visibility: hidden content would drop out of the tab order. */
+html.motion-ok:not(.motion-ready) [data-reveal] {
+  opacity: 0;
+  animation: reveal-fallback 0s 2.6s forwards;
+}
+
+/* --- Page intro ------------------------------------------------------------
+   Pure CSS, so it starts with the first paint instead of waiting for React to
+   hydrate. That keeps the hero copy (the LCP element) early even on slow phones.
+   First visit in a session: the porcelain curtain writes her wordmark and lifts
+   off the pink water. Later visits skip straight to the hero lines. */
+html {
+  --intro-at: 0.8s;
+}
+html.intro-skip {
+  --intro-at: 0.05s;
+}
+
+@keyframes intro-wipe {
+  from {
+    clip-path: inset(0% 100% 0% 0%);
+  }
+  to {
+    clip-path: inset(0% 0% 0% 0%);
+  }
+}
+@keyframes intro-leave {
+  to {
+    opacity: 0;
+    transform: translateY(-16px);
+  }
+}
+@keyframes curtain-lift {
+  to {
+    transform: translateY(-100%);
+    visibility: hidden;
+  }
+}
+@keyframes line-rise {
+  from {
+    transform: translateY(62%);
+  }
+  to {
+    transform: none;
+  }
+}
+@keyframes fade-up {
+  from {
+    opacity: 0;
+    transform: translateY(22px);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+@keyframes fade-down {
+  from {
+    opacity: 0;
+    transform: translateY(-14px);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+
+html.motion-ok:not(.intro-skip) .intro-curtain {
+  display: flex;
+  animation: curtain-lift 0.9s var(--ease-in-out-quart) 0.55s both;
+}
+html.motion-ok [data-curtain-mark] {
+  animation:
+    intro-wipe 0.6s var(--ease-in-out-quart) 0.05s both,
+    intro-leave 0.3s ease-in 0.5s forwards;
+}
+html.motion-ok [data-mark-line] {
+  animation: line-rise 1.4s var(--ease-out-expo) calc(var(--intro-at) + var(--i, 0) * 0.12s) both;
+}
+html.motion-ok [data-intro='dr'] {
+  animation: fade-up 1.2s var(--ease-out-expo) calc(var(--intro-at) + 0.15s) both;
+}
+html.motion-ok [data-intro='fade'] {
+  animation: fade-up 1.2s var(--ease-out-expo) calc(var(--intro-at) + 0.3s + var(--i, 0) * 0.08s) both;
+}
+/* On a first visit the copy sits under the curtain, so it doesn't need to fade:
+   it is painted from the first frame and only settles into place as the
+   curtain lifts. (Browsers don't count faded-out text as painted, which would
+   push the largest-contentful-paint time back.) */
+@keyframes settle-up {
+  from {
+    transform: translateY(22px);
+  }
+  to {
+    transform: none;
+  }
+}
+html.motion-ok:not(.intro-skip) [data-intro='dr'],
+html.motion-ok:not(.intro-skip) [data-intro='fade'] {
+  animation-name: settle-up;
+}
+html.motion-ok [data-header-inner] {
+  animation: fade-down 1.2s var(--ease-out-expo) calc(var(--intro-at) + 0.35s) both;
+}
+
+@keyframes scroll-cue {
+  from {
+    transform: translateX(-100%);
+  }
+  to {
+    transform: translateX(200%);
+  }
+}
+.scroll-cue {
+  animation: scroll-cue 2.4s var(--ease-in-out-quart) infinite;
+}
+
+/* SplitText line masks */
+.split-mask {
+  overflow: clip;
+  overflow-clip-margin: 0.12em;
+  padding-bottom: 0.06em;
+  margin-bottom: -0.06em;
+}
+
+/* Custom cursor: only when the motion layer turns it on. */
+html.has-cursor,
+html.has-cursor * {
+  cursor: none !important;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  /* .force-motion only exists in development (see layout.tsx). */
+  html:not(.force-motion) *,
+  html:not(.force-motion) *::before,
+  html:not(.force-motion) *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
+}
